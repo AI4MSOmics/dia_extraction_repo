@@ -73,7 +73,7 @@
       "type": "string",
       "enum": ["en", "zh"],
       "default": "en",
-      "description": "Report language."
+      "description": "Language for all user-facing output (PDF info lines, heatmap titles, cover/index pages, audit report, R panel labels). Default English. Set to 'zh' for Chinese. Can also be controlled via the DIA_LANG environment variable."
     }
   }
 }

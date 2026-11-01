@@ -1,11 +1,32 @@
 # Configuration reference
 
-## Environment variables
+## Language
 
-Scripts 71 and 73 accept environment variable overrides for chaining:
+**Default: English.** All user-facing text (PDF info lines, heatmap titles, cover/index pages, audit report, R panel labels) is in English by default.
+
+To switch to Chinese, set the `DIA_LANG` environment variable:
+
+```bash
+# Chinese output
+export DIA_LANG=zh
+python scripts/79_compose_a4.py
+
+# R rendering (also picks up DIA_LANG via lang_strings.R)
+DIA_LANG=zh env -u LC_CTYPE Rscript risoPSV/78_s14_export.R
+
+# Back to English (default)
+unset DIA_LANG
+# or
+export DIA_LANG=en
+```
+
+Translation is handled by `lang.py` (Python) and `risoPSV/lang_strings.R` (R), both reading the same `DIA_LANG` variable. Code comments and script logs remain in English (they don't affect deliverables).
+
+## Environment variables
 
 | Variable | Used by | Default | Description |
 |----------|---------|---------|-------------|
+| `DIA_LANG` | all | `en` | Output language: `en` (default) or `zh` |
 | `TGT` | 71, 73 | `work/tmp/s14_targets.parquet` | Target table path (parquet) |
 | `OUTD` | 71, 73 | `work/output/s14_evidence/extract` (71) or `.../profiles` (73) | Output directory |
 | `ROWSX` | 73 | `work/output/s14_evidence/extract/rows_all.parquet` | Extraction results path (for profile apex determination) |

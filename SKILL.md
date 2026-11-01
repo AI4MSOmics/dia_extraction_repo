@@ -39,6 +39,8 @@ Probe once:
 
 The pipeline is a chain of numbered scripts. Each takes the previous output as input.
 
+**Language**: All output defaults to English. Set `DIA_LANG=zh` to switch to Chinese (affects PDF info lines, heatmap titles, cover/index pages, audit report, and R panel labels). Both `lang.py` (Python) and `risoPSV/lang_strings.R` (R) read this variable.
+
 ### Phase 1: Target building and extraction
 1. **70_build_s14_targets.py** — Parse search results → target table (seq/z/mz/sample/RT/qty).
    Key: resolves modification states from m/z deltas; maps sample names to raw files.

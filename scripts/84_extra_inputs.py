@@ -11,6 +11,9 @@ mods 文本从 pid 解析；预测强度/余弦从 AlphaPeptDeep pkl 取（键=�
 """
 import sys, os, json, pickle, importlib.util
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from lang import make as _lang_make
+_L = _lang_make()
 import numpy as np
 import pandas as pd
 
@@ -130,15 +133,19 @@ def main():
             Raw_Score=int(b.nmatched), Final_Score=int(b.bLad + b.yLad),
             Proteins=m0.prot, Positions="-,-,-",
             Sample=b["sample"], RT_apex=float(b.apex_rt),
-            Info1="| %s (%s) | %s | %d+ | mods: %s | m/z %.4f | %d samples, RT %.2f-%.2f min" %
-                  (m0.prot, m0.gene, seq, int(b.z), mods_text(pid) if mods_text(pid) != "none" else "none",
-                   float(b.mz_s14), len(gk), rt_lo, rt_hi),
-            Info2="Best spectrum: %s  |  RT %.2f min  |  matched b/y %d (ladder b%d/y%d)  |  "
-                  "MS1 precursor envelope: %s  |  RT anchor: v9 master (RTCorrected)" %
-                  (b["sample"], float(b.apex_rt), int(b.nmatched), int(b.bLad), int(b.yLad),
-                   "yes" if b.ms1_flag else "not detected"),
-            Info3="Table 1 peptide not covered by Table S14 - evidence via v9-master "
-                  "RT-anchored extraction  |  main-text table peptide: yes",
+            Info1="| %s (%s) | %s | %d+ | %s: %s | m/z %.4f | %d %s, RT %.2f-%.2f min" %
+                  (m0.prot, m0.gene, seq, int(b.z), _L("mods"),
+                   mods_text(pid) if mods_text(pid) != "none" else _L("none"),
+                   float(b.mz_s14), len(gk), _L("samples"), rt_lo, rt_hi),
+            Info2="%s: %s  |  RT %.2f min  |  %s %d (%s b%d/y%d)  |  %s: %s  |  %s" %
+                  (_L("Best spectrum"), b["sample"], float(b.apex_rt),
+                   _L("matched b/y"), int(b.nmatched), _L("ladder"), int(b.bLad), int(b.yLad),
+                   _L("MS1 precursor envelope"),
+                   _L("yes") if b.ms1_flag else _L("not detected"),
+                   _L("RT anchor: v9 master (RTCorrected)")),
+            Info3=_L("Table 1 peptide not covered by Table S14 - evidence via v9-master "
+                  "RT-anchored extraction") + "  |  %s: %s" % (_L("main-text table peptide"),
+                  _L("yes")),
             PredB=pred_b, PredY=pred_y, PredCos=cos_v, PredN=n_sh,
             HeatSeq=seq, HeatZ=int(b.z), HeatMz=float(b.mz_s14),
         ))

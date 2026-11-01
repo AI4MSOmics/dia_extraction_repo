@@ -22,6 +22,14 @@ cd dia_extraction_repo
 #               R >=4.0 (base), ThermoFisher RawFileReader DLLs, AlphaPeptDeep
 ```
 
+### Language
+
+All output defaults to **English**. To switch to Chinese:
+```bash
+export DIA_LANG=zh    # or set on individual commands
+```
+This controls PDF info lines, heatmap titles, cover/index pages, audit report, and R panel labels across the entire chain.
+
 ### Usage — three integration paths
 
 #### 1. MSHub skill card

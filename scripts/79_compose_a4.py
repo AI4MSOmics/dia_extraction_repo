@@ -10,6 +10,9 @@
 """
 import sys, os, json, math
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from lang import make as _lang_make, current as _lang_cur
+_L = _lang_make()
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -104,15 +107,16 @@ def heatmap_png(seq, z, mz, gk, path, prof_idx=None, prof_npz=None):
     stat_txt = ""
     if len(apex_rts) >= 2:
         arr = np.array(apex_rts)
-        stat_txt = "apex RT (max-quantity bin): %.2f ± %.2f min (mean ± SD, n=%d" % (
-            float(arr.mean()), float(arr.std(ddof=1)), len(apex_rts))
+        stat_txt = "%s: %.2f ± %.2f min (%s, n=%d" % (
+            _L("apex RT (max-quantity bin)"), float(arr.mean()),
+            float(arr.std(ddof=1)), _L("mean ± SD"), len(apex_rts))
         if n_nq:
-            stat_txt += "; %d row(s) below quant threshold" % n_nq
+            stat_txt += "; %d %s" % (n_nq, _L("row(s) below quant threshold"))
         stat_txt += ")"
     elif len(apex_rts) == 1:
-        stat_txt = "apex RT: %.2f min (n=1)" % apex_rts[0]
+        stat_txt = "%s: %.2f min (n=1)" % (_L("apex RT (max-quantity bin)"), apex_rts[0])
         if n_nq:
-            stat_txt += "; %d row(s) below quant threshold" % n_nq
+            stat_txt += "; %d %s" % (n_nq, _L("row(s) below quant threshold"))
     vmax = M.max()
     if vmax > 0:
         M = M / vmax
@@ -134,16 +138,16 @@ def heatmap_png(seq, z, mz, gk, path, prof_idx=None, prof_npz=None):
                     fontsize=5.4, color="#666666")
     ax.set_yticks(range(len(prof_rows)))
     ax.set_yticklabels([x[0] for x in prof_rows], fontsize=6)
-    ax.set_xlabel("retention time (min)", fontsize=8)
+    ax.set_xlabel(_L("retention time (min)"), fontsize=8)
     ax.xaxis.set_label_coords(0.5, -0.062)
     ax.set_xlim(b0, b1)
     ax.tick_params(labelsize=6.5)
-    ax.set_title("Fragment-ion XIC heatmap (1-min bins; white = 0, red = max; per-row cutoff = 20% of "
-                 "row max; grey value in blank row = Table S14 quantity of that sample)\n" + stat_txt,
+    ax.set_title(_L("Fragment-ion XIC heatmap (1-min bins; white = 0, red = max; per-row cutoff = 20% of "
+                    "row max; grey value in blank row = Table S14 quantity of that sample)") + "\n" + stat_txt,
                  fontsize=7.2, loc="left", pad=4)
     cb = fig.colorbar(im, ax=ax, pad=0.01, fraction=0.04)
     cb.ax.tick_params(labelsize=6)
-    cb.set_label("rel. XIC", fontsize=6.5)
+    cb.set_label(_L("rel. XIC"), fontsize=6.5)
     fig.savefig(path)
     plt.close(fig)
     return True
@@ -210,7 +214,8 @@ def main():
         if has:
             page.insert_image(pymupdf.Rect(20, 431, 575, 838), filename=hp)
         else:
-            page.insert_text((30, 600), "no profiles", fontsize=10)
+            page.insert_text((30, 600), "no profiles" if _lang_cur() == "en" else "无剖面",
+                             fontsize=10)
         pages.append(dict(page=len(pages) + 1, prot=m0.prot, gene=m0.gene, seq=seq,
                           z=int(b.z), mz=float(b.mz_s14),
                           flank="-", samples=len(gk),
@@ -222,17 +227,18 @@ def main():
     topdoc2 = None
     # 用 matplotlib 生成封面/索引 PNG 再插入
     fig = plt.figure(figsize=(8.27, 11.69))
-    fig.text(0.5, 0.60, "Evidence for Mtb-derived peptides (Table S14)", ha="center",
+    fig.text(0.5, 0.60, _L("Evidence for Mtb-derived peptides (Table S14)"), ha="center",
              fontsize=16, weight="bold", family="Arial")
-    fig.text(0.5, 0.555, "isoPSV-layout evidence pages: info lines, ion ladder, observed "
-             "spectrum, inverted AlphaPeptDeep prediction, ppm panel, RT heatmap",
+    fig.text(0.5, 0.555, _L("Page content: info lines, ion ladder, observed spectrum, "
+             "inverted AlphaPeptDeep prediction, ppm panel, RT heatmap").replace(
+             "Page content: ", "isoPSV-layout: "),
              ha="center", fontsize=9)
     for i, s in enumerate([
-            "%d peptide sequences, %d samples (7 HC / 23 TB), hebei DIA cohort" %
-            (len(seqs), rows["sample"].nunique()),
-            "Top block rendered by the isoPSV R engine (single_spectrum_export.R drawing engine)",
-            "Observed = RT-anchored targeted extraction, best sample by matched ions",
-            "Prediction = AlphaPeptDeep 1.5.0 (inverted); heatmap = apex-confirmed-ion XIC, 1-min bins"]):
+            "%d %s, %d %s, hebei DIA cohort" %
+            (len(seqs), _L("peptide sequences"), rows["sample"].nunique(), _L("samples")),
+            _L("Top block rendered by the isoPSV R engine") + " (single_spectrum_export.R)",
+            _L("Observed = RT-anchored targeted extraction, best sample by matched b/y ions"),
+            _L("Prediction = AlphaPeptDeep 1.5.0 (inverted); cosine on shared 1+ b/y ions")]):
         fig.text(0.12, 0.49 - i * 0.028, s, fontsize=9)
     covpng = os.path.join(tmpdir, "_cover.png")
     fig.savefig(covpng, dpi=150); plt.close(fig)
@@ -244,10 +250,12 @@ def main():
     npg = _m.ceil(len(pages) / chunk)
     for ci in range(npg):
         fig = plt.figure(figsize=(8.27, 11.69))
-        fig.text(0.06, 0.965, "Index%s" % ("" if ci == 0 else " (cont'd %d/%d)" % (ci + 1, npg)),
+        fig.text(0.06, 0.965, _L("Index") + ("%s" % ("" if ci == 0 else " (%s %d/%d)" %
+                 (_L("cont'd"), ci + 1, npg))),
                  fontsize=13, weight="bold", va="top", family="Arial")
         ax = fig.add_axes([0.04, 0.03, 0.94, 0.92]); ax.axis("off")
-        hdr = ["Page", "Protein", "Gene", "Sequence", "z", "m/z", "N", "RT range", "Best PSM"]
+        hdr = [_L("Page"), _L("Protein"), _L("Gene"), _L("Sequence"), "z", "m/z", "N",
+               _L("RT range"), _L("Best PSM")]
         body = []
         for p in pages[ci * chunk:(ci + 1) * chunk]:
             body.append([p["page"], p["prot"], p["gene"], p["seq"], p["z"],

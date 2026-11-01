@@ -11,6 +11,7 @@ suppressWarnings(suppressMessages({
   source("chimeric_check.R", encoding = "UTF-8")
 }))
 setwd("F:/IPX0018588000/work/risoPSV")
+source("lang_strings.R", encoding = "UTF-8", local = TRUE)
 IN_TSV <- Sys.getenv("IN_TSV", "F:/IPX0018588000/work/risoPSV/in/s14_spectra.tsv")
 OUT_PDF <- Sys.getenv("OUT_PDF", "F:/IPX0018588000/work/risoPSV/out/s14_topblock.pdf")
 SEQ <- Sys.getenv("SEQ", "")
@@ -157,7 +158,7 @@ draw_obs_panel <- function(spec_obj, th, chg_v, ann, head) {
   xmax <- max(mz, na.rm = TRUE) * 1.03
   plot(0, 0, type = "n", xlim = c(0, xmax), ylim = c(0, 1.15),
        xlab = "", ylab = "", yaxt = "n", xaxt = "n", xaxs = "i", yaxs = "i")
-  title(ylab = "Intensity (%)", cex.lab = 0.75, line = 1.7)
+  title(ylab = L("Intensity (%)"), cex.lab = 0.75, line = 1.7)
   par(mgp = c(2.0, 0.8, 0))
   axis(2, at = seq(0, 1, 0.2), labels = as.character(seq(0, 100, 20)),
        cex.axis = 0.83, las = 1)
@@ -188,7 +189,7 @@ draw_pred_panel <- function(bmz, ymz, bint, yint, xmax, head, cos_line, geom) {
   par(mar = c(0.5, 2.2, 1.6, 0.3))
   plot(0, 0, type = "n", xlim = c(0, xmax), ylim = c(-1.15, 0.0),
        xlab = "", ylab = "", yaxt = "n", xaxt = "n", xaxs = "i", yaxs = "i")
-  title(ylab = "Intensity (%)", cex.lab = 0.75, line = 1.7)
+  title(ylab = L("Intensity (%)"), cex.lab = 0.75, line = 1.7)
   par(mgp = c(2.0, 0.8, 0))
   axis(2, at = seq(0, -1, -0.2), labels = as.character(seq(0, 100, 20)),
        cex.axis = 0.83, las = 1)
@@ -279,17 +280,17 @@ for (i in seq_len(nrow(pf))) {
   layout(matrix(c(1, 2, 3), 3, 1), heights = c(1.0, 0.85, 0.35))
   par(oma = c(2.0, 0.8, 3.2, 0.4)); par(cex = 1)
   g <- draw_obs_panel(spec_obj, th, chg_v, ann,
-        sprintf("Observed spectrum - %s (scan %s)", as.character(row$Sample),
+        sprintf(paste0(L("Observed spectrum"), " - %s (scan %s)"), as.character(row$Sample),
                 as.character(row$Scan_No)))
   draw_ladder(as.character(row$Sequence), th,
               if (is.na(row$Modification)) "" else as.character(row$Modification), chg_v)
   if (pv_ok && length(bint) == length(bmz) && length(bint) > 0) {
     draw_pred_panel(bmz, ymz, bint, yint, g$xmax,
-                    "AlphaPeptDeep prediction (inverted)", cos_line, g)
+                    L("AlphaPeptDeep prediction (inverted)"), cos_line, g)
   } else {
     par(mar = c(0.5, 2.2, 1.6, 0.3))
     plot(NA, xlim = c(0, g$xmax), ylim = c(-1.15, 0), axes = FALSE, xlab = "", ylab = "")
-    mtext("AlphaPeptDeep prediction unavailable for this precursor", side = 3,
+    mtext(L("AlphaPeptDeep prediction unavailable for this precursor"), side = 3,
           line = 0.6, cex = 0.83, adj = 0, font = 2)
   }
   draw_ppm_panel(th, g$mz, g$xmax)

@@ -18,6 +18,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pymupdf
 import openpyxl
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+from lang import make as _lang_make
+_L = _lang_make()
 
 ROOT = r"F:\IPX0018588000"
 
@@ -143,9 +147,10 @@ def main():
             else:
                 page.insert_text((30, 60), "Table 1 No.%s %s (%s)" % (rec["no"], rec["prot"], rec["gene"]),
                                  fontsize=12, fontname="hebo")
-                page.insert_text((30, 90), "Peptide: %s" % pep, fontsize=11, fontname="helv")
-                page.insert_text((30, 120), "No extracted spectrum: this peptide is not present in "
-                                 "Table S14 of the revision (no RT-anchored extraction was possible).",
+                page.insert_text((30, 90), "%s: %s" % (_L("Peptide"), pep), fontsize=11,
+                                 fontname="helv")
+                page.insert_text((30, 120), _L("No extracted spectrum: this peptide is not present in "
+                                 "Table S14 of the revision (no RT-anchored extraction was possible)."),
                                  fontsize=9, fontname="helv")
                 mani.append(dict(page_no=idx_pi + 1, t1_no=rec["no"], prot=rec["prot"],
                                   gene=rec["gene"], seq=pep, status="no_spectrum"))
@@ -155,17 +160,18 @@ def main():
     fig = plt.figure(figsize=(8.27, 11.69))
     n_ok = sum(1 for m in mani if m["status"] == "ok")
     n_ex = sum(1 for m in mani if m["status"] == "ok_extra")
-    fig.text(0.5, 0.60, "Evidence pages for peptides of Table 1 (Mtb-annotated proteins)",
+    fig.text(0.5, 0.60, _L("Evidence pages for peptides of Table 1 (Mtb-annotated proteins)"),
              ha="center", fontsize=14, weight="bold", family="Arial")
-    fig.text(0.5, 0.555, "Same isoPSV-layout page per peptide as the main S14 evidence PDF, "
-             "ordered by Table 1 (protein No., peptide order)", ha="center", fontsize=9)
+    fig.text(0.5, 0.555, _L("Same isoPSV-layout page per peptide as the main S14 evidence PDF, "
+             "ordered by Table 1 (protein No., peptide order)"), ha="center", fontsize=9)
     for i, s in enumerate([
-            "%d proteins / %d peptides from Table 1" % (len(t1), len(mani)),
-            "%d peptides with Table S14 evidence; %d additional via v9-master RT-anchored "
-            "extraction (not covered by Table S14); %d without any spectrum" %
-            (n_ok, n_ex, len(mani) - n_ok - n_ex),
-            "Page content: info lines, ion ladder, observed spectrum, inverted AlphaPeptDeep "
-            "prediction, ppm panel, RT heatmap"]):
+            "%d %s / %d %s (Table 1)" % (len(t1), _L("proteins"), len(mani), _L("peptide sequences")),
+            "%d %s; %d %s; %d %s" %
+            (n_ok, _L("peptides with Table S14 evidence"), n_ex,
+             _L("additional via v9-master RT-anchored extraction (not covered by Table S14)"),
+             len(mani) - n_ok - n_ex, _L("without any spectrum")),
+            _L("Page content: info lines, ion ladder, observed spectrum, inverted AlphaPeptDeep "
+               "prediction, ppm panel, RT heatmap")]):
         fig.text(0.12, 0.49 - i * 0.028, s, fontsize=9)
     covpng = os.path.join(tmpdir, "_t1_cover.png")
     fig.savefig(covpng, dpi=150); plt.close(fig)
@@ -176,14 +182,16 @@ def main():
     npg = math.ceil(len(mani) / chunk)
     for ci in range(npg):
         fig = plt.figure(figsize=(8.27, 11.69))
-        fig.text(0.06, 0.965, "Index%s" % ("" if ci == 0 else " (cont'd %d/%d)" % (ci + 1, npg)),
+        fig.text(0.06, 0.965, _L("Index") + "%s" % ("" if ci == 0 else " (%s %d/%d)" %
+                 (_L("cont'd"), ci + 1, npg)),
                  fontsize=13, weight="bold", va="top", family="Arial")
         ax = fig.add_axes([0.04, 0.03, 0.94, 0.92]); ax.axis("off")
         sub = mani[ci * chunk:(ci + 1) * chunk]
         body = [[m["page_no"], m["t1_no"], m["prot"], m["gene"], m["seq"][:30],
                  m["status"]] for m in sub]
         tb = ax.table(cellText=body,
-                      colLabels=["Page", "No.", "Protein", "Gene", "Peptide", "Status"],
+                      colLabels=[_L("Page"), _L("No."), _L("Protein"), _L("Gene"),
+                                 _L("Peptide"), _L("Status")],
                       loc="upper center", cellLoc="center", bbox=[0, 0, 1, 0.94],
                       colWidths=[0.07, 0.06, 0.13, 0.12, 0.44, 0.18])
         tb.auto_set_font_size(False); tb.set_fontsize(5)

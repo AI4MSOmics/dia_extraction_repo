@@ -15,6 +15,9 @@
 """
 import sys, os, json, pickle, importlib.util
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from lang import make as _lang_make
+_L = _lang_make()
 import numpy as np
 import pandas as pd
 
@@ -170,20 +173,23 @@ def main():
             Raw_Score=int(b.nmatched), Final_Score=int(b.bLad + b.yLad),
             Proteins=m0.prot, Positions=posn,
             Sample=b["sample"], RT_apex=float(b.apex_rt),
-            Info1="| %s (%s) | (%s)%s(%s) | %d+ | mods: %s | m/z %.4f | %d samples, RT %.2f-%.2f min" %
-                  (m0.prot, m0.gene, pre, seq, post, int(b.z),
-                   mods.replace(";", "; ") if mods != "-" else "none",
-                   float(b.mz_s14), len(gk), rt_lo, rt_hi),
-            Info2="Best spectrum: %s  |  RT %.2f min (Table S14 %.2f, D%+.2f)  |  matched b/y %d "
-                  "(ladder b%d/y%d)  |  MS1 precursor envelope: %s" %
-                  (b["sample"], float(b.apex_rt), float(b.rt_s14), float(b.drt),
-                   int(b.nmatched), int(b.bLad), int(b.yLad),
-                   "yes" if b.ms1_flag else "not detected"),
-            Info3="q-value (Table S14): %s  |  PG.Quantity: %s  |  main-text table peptide: %s  |  "
+            Info1="| %s (%s) | (%s)%s(%s) | %d+ | %s: %s | m/z %.4f | %d %s, RT %.2f-%.2f min" %
+                  (m0.prot, m0.gene, pre, seq, post, int(b.z), _L("mods"),
+                   mods.replace(";", "; ") if mods != "-" else _L("none"),
+                   float(b.mz_s14), len(gk), _L("samples"), rt_lo, rt_hi),
+            Info2="%s: %s  |  RT %.2f min (Table S14 %.2f, D%+.2f)  |  %s %d "
+                  "(%s b%d/y%d)  |  %s: %s" %
+                  (_L("Best spectrum"), b["sample"], float(b.apex_rt), float(b.rt_s14),
+                   float(b.drt), _L("matched b/y"), int(b.nmatched),
+                   _L("ladder"), int(b.bLad), int(b.yLad),
+                   _L("MS1 precursor envelope"),
+                   _L("yes") if b.ms1_flag else _L("not detected")),
+            Info3="q-value (Table S14): %s  |  PG.Quantity: %s  |  %s: %s  |  "
                   "unique peptide count %s / Mtb-complex specific %s" %
                   (("%.1e" % float(b.qval)) if pd.notna(b.qval) else "-",
                    ("%.3g" % float(b.qty)) if pd.notna(b.qty) else "-",
-                   "yes" if m0.in_main else "no", m0.uc, m0.mtb),
+                   _L("main-text table peptide"),
+                   _L("yes") if m0.in_main else "no", m0.uc, m0.mtb),
             PredB=pred_b, PredY=pred_y, PredCos=cos_v, PredN=n_sh,
             HeatSeq=seq, HeatZ=int(b.z), HeatMz=float(b.mz_s14),
         )
