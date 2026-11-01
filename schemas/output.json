@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/AI4MSOmics/dia_extraction_repo/main/schemas/output.json",
+  "title": "dia_extraction output",
+  "description": "Output artifacts from the DIA spectrum evidence extraction pipeline.",
+  "type": "object",
+  "required": ["evidence_pdf", "extraction_detail"],
+  "properties": {
+    "evidence_pdf": {
+      "type": "object",
+      "description": "Per-peptide A4 evidence PDF.",
+      "properties": {
+        "path": { "type": "string" },
+        "peptide_pages": { "type": "integer", "description": "Number of peptide evidence pages." },
+        "total_pages": { "type": "integer", "description": "Total pages including cover and index." },
+        "layout": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Page sections in order (info lines, ion ladder, observed spectrum, inverted prediction, ppm panel, RT heatmap)."
+        }
+      }
+    },
+    "table1_pdf": {
+      "type": "object",
+      "description": "Table 1 cross-reference evidence PDF.",
+      "properties": {
+        "path": { "type": "string" },
+        "peptides_ok": { "type": "integer", "description": "Peptides with S14 evidence." },
+        "peptides_extra": { "type": "integer", "description": "Peptides via v9-master RT-anchored extraction." },
+        "peptides_no_spectrum": { "type": "integer", "description": "Peptides without any extracted spectrum." }
+      }
+    },
+    "extraction_detail": {
+      "type": "object",
+      "description": "Per-(precursor,sample) extraction results.",
+      "properties": {
+        "rows_path": { "type": "string", "description": "Parquet file path." },
+        "spectra_path": { "type": "string", "description": "NPZ file path (apex spectra arrays)." },
+        "ok_rate": { "type": "number", "description": "Fraction of rows with successful extraction." },
+        "drt_median_min": { "type": "number", "unit": "min", "description": "Median |RT difference| vs anchor." },
+        "ladder_ge6_rate": { "type": "number", "description": "Fraction with sequence ladder b+y >= 6." },
+        "ms1_envelope_rate": { "type": "number", "description": "Fraction with MS1 precursor envelope detected." }
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "description": "Full-RT correlation XIC profiles.",
+      "properties": {
+        "path": { "type": "string", "description": "NPZ file path." },
+        "pairs": { "type": "integer", "description": "Number of (precursor, sample) profile pairs." },
+        "background_removal": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Three-tier background removal applied (ion floor, row threshold, absolute line)."
+        }
+      }
+    },
+    "audit_report": {
+      "type": "object",
+      "description": "Three-layer audit results.",
+      "properties": {
+        "md_path": { "type": "string", "description": "Markdown report path." },
+        "json_path": { "type": "string", "description": "JSON report path." },
+        "errors": { "type": "integer", "description": "Number of ERR-level findings (target: 0)." },
+        "warnings": { "type": "integer", "description": "Number of WARN-level findings." },
+        "layers": {
+          "type": "object",
+          "properties": {
+            "data_reconciliation": { "type": "string" },
+            "table1_crossref": { "type": "string" },
+            "presentation": { "type": "string" }
+          }
+        }
+      }
+    },
+    "prediction_coverage": {
+      "type": "number",
+      "description": "Fraction of peptides with AlphaPeptDeep theoretical spectra."
+    },
+    "figures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["heatmap", "ion_ladder", "spectrum", "ppm"]
+          }
+        }
+      }
+    }
+  }
+}

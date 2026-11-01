@@ -1,0 +1,9 @@
+# -*- coding: utf-8 -*-
+"""80_run_v4_chain.cmd 说明（人工执行序）—— isoPSV 版式全量链
+1) python F:\\IPX0018588000\\work\\scripts\\73_profiles.py          # 热图剖面（已完成则跳过）
+2) python F:\\IPX0018588000\\work\\scripts\\76_build_isopsv_inputs.py
+3) R:   cd F:/IPX0018588000/work/risoPSV && env -u LC_CTYPE -u LC_ALL -u LANG \
+       OUT_PDF=F:/IPX0018588000/work/risoPSV/out/s14_topblock.pdf \
+       D:/Bioinformatics/R-4.5.1/bin/Rscript.exe 78_s14_export.R
+4) python F:\\IPX0018588000\\work\\scripts\\79_compose_a4.py
+"""

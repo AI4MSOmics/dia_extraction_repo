@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/AI4MSOmics/dia_extraction_repo/main/schemas/input.json",
+  "title": "dia_extraction input",
+  "description": "Input parameters for the DIA spectrum evidence extraction pipeline.",
+  "type": "object",
+  "required": ["search_results", "raw_dir"],
+  "properties": {
+    "search_results": {
+      "type": "string",
+      "description": "Path to DIA search results (Spectronaut report, S14-style table, or pFind-Filtered.spectra). Must contain peptide sequences, charges, m/z, sample/run identifiers, and per-sample RT values."
+    },
+    "raw_dir": {
+      "type": "string",
+      "description": "Directory containing Thermo .raw DIA files."
+    },
+    "raw_mapping": {
+      "type": ["string", "null"],
+      "description": "TSV mapping run_name to raw_path. Auto-generated if null."
+    },
+    "protein_fasta": {
+      "type": ["string", "null"],
+      "description": "Protein FASTA for flanking residue annotation. Header format '>Mtb|Rv0054|ssb' for Mtb proteins."
+    },
+    "table1_xlsx": {
+      "type": ["string", "null"],
+      "description": "Manuscript Table 1 xlsx for cross-reference PDF generation."
+    },
+    "prediction_pkl": {
+      "type": ["string", "null"],
+      "description": "AlphaPeptDeep prediction pkl. Auto-generated via 86_predict_missing.py for missing entries."
+    },
+    "rt_tolerance_min": {
+      "type": "number",
+      "default": 0.6,
+      "description": "RT anchor tolerance for apex search (minutes). Widen to 1.2 if fewer than 2 candidate scans found."
+    },
+    "fragment_ppm": {
+      "type": "number",
+      "default": 20,
+      "description": "Fragment m/z match tolerance (ppm)."
+    },
+    "ms1_ppm": {
+      "type": "number",
+      "default": 10,
+      "description": "MS1 precursor envelope match tolerance (ppm)."
+    },
+    "background_ion_floor": {
+      "type": "number",
+      "default": 0.10,
+      "description": "Ion-level background removal: intensity must be >= this fraction of the ion's apex intensity."
+    },
+    "row_quant_threshold": {
+      "type": "number",
+      "default": 2.0,
+      "description": "Row-level quant threshold: elution window peak must be >= this multiple of the out-of-window baseline."
+    },
+    "absolute_bg_line": {
+      "type": "number",
+      "default": 1.5,
+      "description": "Absolute background line: bin raw value must be >= this multiple of row baseline to count as quantified."
+    },
+    "heatmap_cutoff_pct": {
+      "type": "number",
+      "default": 0.20,
+      "description": "Per-row display cutoff: bins below this fraction of row max are blanked."
+    },
+    "output_dir": {
+      "type": "string",
+      "description": "Output directory for evidence PDFs, extraction results, and audit reports."
+    },
+    "language": {
+      "type": "string",
+      "enum": ["en", "zh"],
+      "default": "en",
+      "description": "Report language."
+    }
+  }
+}

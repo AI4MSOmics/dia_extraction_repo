@@ -1,0 +1,79 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "run_extraction_chain",
+        "description": "Run the full DIA spectrum evidence extraction chain. Produces per-peptide A4 evidence PDFs with isoPSV-style layout (ion ladder, observed spectrum, inverted AlphaPeptDeep prediction, ppm panel, RT heatmap) from DIA raw files and search results.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "search_results": {
+              "type": "string",
+              "description": "Path to DIA search results (Spectronaut report or S14-style table with seq/charge/mz/sample/RT)"
+            },
+            "raw_dir": {
+              "type": "string",
+              "description": "Directory containing Thermo .raw DIA files"
+            },
+            "protein_fasta": {
+              "type": "string",
+              "description": "Path to protein FASTA for flanking residue annotation"
+            },
+            "output_dir": {
+              "type": "string",
+              "description": "Output directory for evidence PDFs and extraction results"
+            },
+            "table1_xlsx": {
+              "type": "string",
+              "description": "Optional: manuscript Table 1 xlsx for cross-reference PDF"
+            }
+          },
+          "required": ["search_results", "raw_dir", "output_dir"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "audit_evidence",
+        "description": "Run the three-layer automated audit on evidence PDFs: A=data reconciliation (S14→targets→extraction→info fields→cosine→heatmap), B=Table1 crossref (page order, headers), C=presentation (text, heatmap, overflow).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "evidence_pdf": {
+              "type": "string",
+              "description": "Path to the main evidence PDF"
+            },
+            "table1_pdf": {
+              "type": "string",
+              "description": "Path to the Table 1 cross-reference PDF"
+            }
+          },
+          "required": ["evidence_pdf"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "predict_missing_spectra",
+        "description": "Run AlphaPeptDeep on-the-fly for peptides that lack theoretical spectrum predictions in the existing pkl.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "input_tsv": {
+              "type": "string",
+              "description": "Path to isoPSV input table (identifies peptides with empty PredB column)"
+            },
+            "prediction_pkl": {
+              "type": "string",
+              "description": "Path to AlphaPeptDeep prediction pkl to update"
+            }
+          },
+          "required": ["input_tsv", "prediction_pkl"]
+        }
+      }
+    }
+  ]
+}

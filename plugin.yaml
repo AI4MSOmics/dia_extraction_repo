@@ -1,0 +1,146 @@
+mshub: 1
+id: ms.s1.dia-extraction
+name: DIA spectrum evidence extraction
+version: 1.0.0
+kind: tool
+stage: s1
+summary: Extract observed MS2 spectra from DIA raw files anchored on search-result RTs, render isoPSV-style evidence pages with inverted AlphaPeptDeep predictions and RT heatmaps.
+
+description: |
+  A multi-chain pipeline that takes DIA search results (Spectronaut reports or
+  any table with peptide sequences, charges, m/z and per-sample RTs) plus Thermo
+  .raw files, and produces per-peptide A4 evidence PDF pages containing:
+  info lines (protein, flanked peptide, charge, mods, RT range), an isoPSV-style
+  ion ladder, the best-PSM observed spectrum (RT-anchored targeted extraction
+  with sequence-ladder apex scoring), an inverted AlphaPeptDeep predicted
+  spectrum with cosine annotation, a mass-error ppm panel, and a per-sample
+  RT heatmap (spectrum-correlation XIC with three-tier background removal:
+  ion-level 10% apex floor, row-level 2x baseline quant threshold, and 1.5x
+  absolute background line). Handles peptides missing from the search report
+  via a v9-master RT-anchored fallback chain, and peptides lacking predictions
+  via on-the-fly AlphaPeptDeep inference. Includes a full automated audit
+  (data-to-presentation) and Table 1 cross-reference PDF generation.
+
+license: Apache-2.0
+authors:
+  - name: Songhao Jiang
+    url: https://github.com/Songhao-Jiang
+maintainers:
+  - name: Songhao Jiang
+    url: https://github.com/Songhao-Jiang
+
+source:
+  repo: https://github.com/AI4MSOmics/dia_extraction_repo
+  ref: v1.0.0
+
+runtime:
+  type: python
+  entrypoint: ["python", "scripts/70_build_s14_targets.py"]
+  resources:
+    memory: 4Gi
+    timeout: 120m
+
+tools:
+  - name: run_extraction_chain
+    title: Run full DIA evidence extraction chain
+    description: Execute scripts 70-86 in sequence to produce evidence PDFs from DIA raw + search results.
+    input_schema: schemas/input.json
+    output_schema: schemas/output.json
+    annotations:
+      read_only: false
+      destructive: false
+      idempotent: true
+      open_world: false
+  - name: audit_results
+    title: Audit evidence PDFs
+    description: Run script 85 to perform a three-layer audit (data, Table1, presentation) on all output PDFs.
+    input_schema: schemas/audit_input.json
+    output_schema: schemas/audit_output.json
+    annotations:
+      read_only: true
+      destructive: false
+      idempotent: true
+      open_world: false
+
+io:
+  inputs:
+    - name: search_results
+      media_type: text/tab-separated-values
+      description: DIA search results table (Spectronaut report or S14-style evidence table)
+    - name: raw_files
+      media_type: application/octet-stream
+      description: Directory of Thermo .raw DIA files
+    - name: protein_fasta
+      media_type: text/x-fasta
+      optional: true
+      description: Protein database for flanking residue annotation
+    - name: search_table
+      media_type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      optional: true
+      description: Manuscript Table 1 xlsx for cross-reference PDF
+  outputs:
+    - name: evidence_pdf
+      media_type: application/pdf
+      description: Per-peptide A4 evidence PDF (isoPSV layout + RT heatmap)
+    - name: table1_pdf
+      media_type: application/pdf
+      description: Table 1 cross-reference evidence PDF
+    - name: audit_report
+      media_type: text/markdown
+      description: Three-layer automated audit report
+    - name: extraction_detail
+      media_type: text/tab-separated-values
+      description: Per-row extraction results and spectra store
+
+requires:
+  - ms.s1.acquisition-eval
+provides:
+  - qc.dia-evidence-extraction
+
+capabilities:
+  - slot: qc.dia-evidence-extraction
+    priority: 80
+
+evaluation:
+  datasets:
+    - id: tb-hebei-faims-dia
+      description: Mtb plasma EV DIA (hebei cohort), 36 raw files, Spectronaut direct-DIA
+    - id: tb-table1-crossref
+      description: Table 1 (53 Mtb proteins, 159 peptides) cross-reference evidence
+  metrics:
+    - name: extraction_ok_rate
+      target: "=1.0"
+      direction: maximize
+    - name: drt_median_min
+      target: "<0.1"
+      direction: minimize
+    - name: audit_errors
+      target: "=0"
+      direction: minimize
+    - name: audit_warnings
+      target: "<=2"
+      direction: minimize
+  minimum_tier: experimental
+
+security:
+  network: none
+  filesystem: read-write
+  secrets: none
+  approval: never
+  data_classification: internal
+
+compatibility:
+  os: [windows/amd64]
+  python: ">=3.8"
+  r: ">=4.0"
+  notes: "Requires ThermoFisher RawFileReader DLLs and .NET Core 3.1 for rawdump; R 4.5 with base packages for isoPSV engine"
+
+citations:
+  - text: ThermoFisher RawFileReader for .raw file access.
+    url: https://planetorbitrap.com/rawfilereader
+  - text: AlphaPeptDeep for theoretical spectrum prediction.
+    url: https://github.com/AI4MSOmics/AlphaPeptDeep
+  - text: isoPSV spectrum visualization engine (R).
+    url: https://github.com/Songhao-Jiang/isoPSV
+  - text: MSHub capability hub specification and plugin schema.
+    url: https://github.com/AI4MSOmics/MSHub
